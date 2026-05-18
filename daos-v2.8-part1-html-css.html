@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAOS v2.8 · TOTALMENTE ADAPTATIVO</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+  <style>
+    /* ========== ESTILOS CORREGIDOS ========== */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+    
+    :root {
+      --bg: #060810;
+      --panel: #0d1117;
+      --borde: #1c2333;
+      --a: #f59e0b;
+      --b: #fb923c;
+      --c: #10b981;
+      --d: #38bdf8;
+      --rojo: #ef4444;
+      --morado: #a855f7;
+      --texto: #94a3b8;
+      --brillante: #f1f5f9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--texto);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      padding-bottom: 40px;
+      background-image: radial-gradient(ellipse at 15% 15%, rgba(245, 158, 11, 0.05) 0%, transparent 55%),
+                        radial-gradient(ellipse at 85% 85%, rgba(56, 189, 248, 0.04) 0%, transparent 55%);
+    }
+
+    /* HEADER */
+    .hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--borde);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6, 8, 10, 0.95);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 14px;
+      background: linear-gradient(90deg, var(--a), var(--b));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 3px;
+    }
+
+    .logo-sub {
+      font-size: 8px;
+      color: var(--texto);
+      letter-spacing: 4px;
+      margin-top: 2px;
+    }
+
+    .hdr-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .clock {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      color: var(--a);
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      padding: 3px 10px;
+      border-radius: 6px;
+    }
+
+    .franja-badge {
+      font-size: 8px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border: 1px solid;
+    }
+
+    .led {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .led.on {
+      background: var(--c);
+      box-shadow: 0 0 8px var(--c);
+    }
+
+    .led.off {
+      background: var(--rojo);
+    }
+
+    .semaforo {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      transition: all 0.3s;
+      margin-right: 5px;
+    }
+
+    .semaforo.verde {
+      background: var(--c);
+      box-shadow: 0 0 10px var(--c);
+    }
+
+    .semaforo.rojo {
+      background: var(--rojo);
+      box-shadow: 0 0 10px var(--rojo);
+    }
+
+    .semaforo.amarillo {
+      background: var(--a);
+      box-shadow: 0 0 10px var(--a);
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .grid4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    @media (max-width: 700px) {
+      .grid2, .grid3, .grid4 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* PANEL */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--a);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 10px;
+      background: var(--a);
+      border-radius: 2px;
+    }
+
+    label {
+      font-size: 10px;
+      color: var(--texto);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    input[type="password"],
+    input[type="number"],
+    select {
+      background: #0a0f16;
+      border: 1px solid var(--borde);
+      color: var(--brillante);
+      padding: 6px 10px;
+      border-radius: 6px;
+      width: 100%;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+    }
+
+    input[type="checkbox"] {
+      accent-color: var(--a);
+    }
+
+    /* BUTTONS */
+    .btn {
+      border: 1px solid;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 10px;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      margin: 2px;
+    }
+
+    .btn-a {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--a);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-c {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--c);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-r {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--rojo);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-p {
+      background: rgba(168, 85, 247, 0.12);
+      color: var(--morado);
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    /* STATS */
+    .stat {
+      background: #0a0f16;
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .stat-lbl {
+      font-size: 7px;
+      letter-spacing: 1px;
+      color: var(--texto);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .score-box {
+      background: #0a0f16;
+      border: 2px solid var(--borde);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .score-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--a);
+    }
+
+    /* PROGRESS BARS */
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 3px 0;
+    }
+
+    .bar-lbl {
+      font-size: 8px;
+      width: 28px;
+      color: var(--texto);
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 4px;
+      background: #1c2333;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.4s;
+    }
+
+    .bar-val {
+      font-size: 9px;
+      font-weight: bold;
+      width: 26px;
+      text-align: right;
+    }
+
+    /* TICK BOARD */
+    .tablero-ticks {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #0a0f16;
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 7px 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 6px 0;
+    }
+
+    .tick-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #1c2333;
+      border: 2px solid #243050;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .tick-dot.up {
+      background: var(--c);
+      border-color: var(--c);
+      color: #0a0f16;
+    }
+
+    .tick-dot.down {
+      background: var(--rojo);
+      border-color: var(--rojo);
+      color: #fff;
+    }
+
+    .tick-dot.neutral {
+      background: #2a3545;
+      border-color: #2a3545;
+    }
+
+    .tick-dot.win-border {
+      border: 3px solid var(--a);
+      box-shadow: 0 0 8px var(--a);
+    }
+
+    .tick-dot.loss-border {
+      border: 3px dashed var(--rojo);
+    }
+
+    .tick-sep {
+      width: 2px;
+      height: 22px;
+      background: #243050;
+      border-radius: 2px;
+    }
+
+    .tick-type {
+      font-size: 8px;
+      padding: 2px 7px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    /* DECISION BANNER */
+    .decision-banner {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      font-weight: bold;
+      text-align: center;
+      margin: 6px 0;
+      border: 1px solid;
+      transition: all 0.3s;
+    }
+
+    .decision-banner.entra {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--c);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .decision-banner.sombra {
+      background: rgba(56, 189, 248, 0.08);
+      color: var(--d);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    .decision-banner.espera {
+      background: #0a0f16;
+      color: var(--texto);
+      border-color: var(--borde);
+    }
+
+    .zona-c-badge {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 6px;
+      padding: 7px 10px;
+      margin-top: 6px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 180px;
+      background: #0a0f16;
+      border-radius: 7px;
+      margin-top: 6px;
+    }
+
+    #log {
+      font-size: 9px;
+      height: 120px;
+      overflow-y: auto;
+      background: #06080a;
+      padding: 7px;
+      border-radius: 6px;
+      line-height: 1.7;
+    }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .risk-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mem-panel {
+      background: #0a0f16;
+      border-radius: 6px;
+      padding: 6px;
+      margin-top: 6px;
+      font-size: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="logo">DAOS ADAPTATIVO · v2.8</div>
+    <div class="logo-sub">TOTALMENTE ADAPTATIVO · TODOS LOS CÁLCULOS APLICADOS</div>
+  </div>
+  <div class="hdr-right">
+    <div class="clock" id="reloj">--:--:--</div>
+    <div class="franja-badge" id="franjaBadge">—</div>
+    <span class="semaforo amarillo" id="semaforo"></span>
+    <span style="font-size: 9px;" id="semTxt">ESPERANDO</span>
+    <span class="led off" id="connLed"></span>
+    <span id="connTxt" style="font-size: 9px;">Desconectado</span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Resto del HTML irá en PARTE 2 -->
+</div>
+
+</body>
+</html>
